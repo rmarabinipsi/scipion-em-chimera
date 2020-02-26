@@ -69,6 +69,12 @@ class ChimeraProtBase(EMProtocol):
         form.addParam('inputVolume', PointerParam, pointerClass="Volume",
                       label='Input Volume', allowsNull=True,
                       help="Volume to process")
+        form.addParam('otherVolumeFiles', MultiPointerParam,
+                      pointerClass="Volume", allowsNull=True,
+                      label='Other 3D maps',
+                      help="In case you need to load more 3D Maps files, "
+                           "you can load them here")  # and save them after "
+                           # "operating with them.")
         form.addParam('pdbFileToBeRefined', PointerParam,
                       pointerClass="AtomStruct",
                       label='Atomic structure',
@@ -156,16 +162,22 @@ class ChimeraProtBase(EMProtocol):
 
         # input vol with its origin coordinates
         pdbModelCounter = 1
+        volList=[]
         if _inputVol is not None:
-            pdbModelCounter += 1
-            x_input, y_input, z_input = _inputVol.getShiftsFromOrigin()
+            volList.append(_inputVol)
+        for vol in self.otherVolumeFiles:
+            volList.append(vol.get())
+
+        for vol in volList:
+            x_input, y_input, z_input = vol.getShiftsFromOrigin()
             inputVolFileName = os.path.abspath(ImageHandler.removeFileType(
-                _inputVol.getFileName()))
+                vol.getFileName()))
             f.write("runCommand('open %s')\n" % inputVolFileName)
-            f.write("runCommand('volume #1 style surface voxelSize %f')\n"
-                    % _inputVol.getSamplingRate())
-            f.write("runCommand('volume #1 origin %0.2f,%0.2f,%0.2f')\n"
-                    % (x_input, y_input, z_input))
+            f.write("runCommand('volume #%d style surface voxelSize %f')\n"
+                    % (pdbModelCounter, vol.getSamplingRate()))
+            f.write("runCommand('volume #%d origin %0.2f,%0.2f,%0.2f')\n"
+                    % (pdbModelCounter, x_input, y_input, z_input))
+            pdbModelCounter += 1
 
         pdbFileToBeRefined = self.pdbFileToBeRefined.get()
         f.write("runCommand('open %s')\n" % os.path.abspath(
@@ -202,7 +214,7 @@ class ChimeraProtBase(EMProtocol):
         for pdb in self.inputPdbFiles:
             f.write("runCommand('open %s')\n" % os.path.abspath(pdb.get(
             ).getFileName()))
-            if pdb.get().hasOrigin():
+            if pdb.get().hasOrigin(): #TODO can a pdb have origin?
                 x, y, z = pdb.get().getOrigin().getShifts()
                 f.write("runCommand('move %0.2f,%0.2f,%0.2f model #%d "
                         "coord #0')\n" % (x, y, z, pdbModelCounter))

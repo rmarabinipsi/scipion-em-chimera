@@ -43,7 +43,7 @@ class ChimeraViewerBase(Viewer):
     _environments = [DESKTOP_TKINTER]
 
     def _visualize(self, obj, **args):
-        # THe input map or pdb may be a parameter from the protocol
+        # The input map or pdb may be a parameter from the protocol
         # or from the parent protocol.
         try:
             _inputVol = self.protocol.inputVolume.get()
