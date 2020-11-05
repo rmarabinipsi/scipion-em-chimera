@@ -77,19 +77,8 @@ class ChimeraModelFromTemplate(ChimeraProtBase):
 
     # --------------------------- DEFINE param functions --------------------
     def _defineParams(self, form, doHelp=False):
-        formBase = super(ChimeraModelFromTemplate, self)._defineParams(form,
-                                                                       doHelp=True)
-        param = form.getParam('pdbFileToBeRefined')
-        param.condition.set('False')
-        param = form.getParam('inputVolume')
-        param.condition.set('False')
-        param = form.getParam('inputVolumes')
-        param.condition.set('False')
-        # hide inputPdbFiles
-        param = form.getParam('inputPdbFiles')
-        param.condition.set('False')
-        param.allowsNull.set('True')
-        section = formBase.getSection('Input')
+        form.addSection(label='Input')
+        section = form.getSection('Input')
         section.addParam('addTemplate', BooleanParam,
                          default=True, label='Do you already have a template?',
                          help='"Yes": Option by default. Select this option in case '
@@ -98,7 +87,7 @@ class ChimeraModelFromTemplate(ChimeraProtBase):
                               'search for a template with which model your target '
                               'sequence. Generation of multimeric models is not '
                               'allowed selecting this option.\n')
-        section.addParam('pdbTemplate', PointerParam,
+        section.addParam('pdbFileToBeRefined', PointerParam,
                          pointerClass="AtomStruct", allowsNull=True,
                          important=True,
                          condition='addTemplate == True',
@@ -326,7 +315,13 @@ class ChimeraModelFromTemplate(ChimeraProtBase):
                               "Install muscle if you choose this option "
                               "for the first time by 'sudo apt install "
                               "muscle'.")
-        formBase.addLine("Step 1:\nIn the sequence window your target "
+        form.addParam('extraCommands', StringParam,
+                      default='',
+                      condition='False',
+                      label='Extra commands for chimera viewer',
+                      help="Add extra commands in cmd file. Use for testing")
+        form.addSection(label='Help')
+        form.addLine("Step 1:\nIn the sequence window your target "
                          "sequence (and other additional sequences that you "
                          "want to use in  the alignment) will appear aligned to "
                          "the template's sequence. Select in the sequence window "
@@ -538,7 +533,7 @@ class ChimeraModelFromTemplate(ChimeraProtBase):
 
     def _readPDB(self):
         self.structureHandler = AtomicStructHandler()
-        fileName = os.path.abspath(self.pdbTemplate.get(
+        fileName = os.path.abspath(self.pdbFileToBeRefined.get(
         ).getFileName())
         self.structureHandler.read(fileName)
         return fileName
@@ -550,11 +545,6 @@ class ChimeraModelFromTemplate(ChimeraProtBase):
     def _getOutFastaSequencesFile(self, outFile):
         OUTFILENAME = self._getExtraPath(outFile)
         return os.path.abspath(OUTFILENAME)
-
-    # def validate(self):
-    #    super(ChimeraModelFromTemplate, self).validate()
-    #    # TODO check if clustal/muscle exists
-    #    #TODO; change help ro installation pages instead of apt-get
 
     def _validate(self):
         # Check that CLUSTALO or MUSCLE program exists
