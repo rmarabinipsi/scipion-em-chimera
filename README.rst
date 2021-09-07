@@ -2,7 +2,7 @@
 Chimera scipion plugin
 ======================
 
-This plugin allows to use chimeraX commands within the Scipion framework.
+This plugin allows to use chimeraX commands within the Scipion framework..
 
 Chimera  is a program for interactive visualization and analysis of molecular structures and related data. It is developed by the Resource for Biocomputing, Visualization, and Informatics (see `ChimeraX home page <https://www.cgl.ucsf.edu/chimerax/>`_ for details).
 
